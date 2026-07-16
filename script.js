@@ -14,7 +14,7 @@ async function loadPosts(){
     const { data, error } = await db
         .from("posts")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending:false });
 
 
     if(error){
@@ -37,38 +37,104 @@ async function loadPosts(){
         text.textContent = post.text;
 
 
-        // Report button
-        const report = document.createElement("form");
-        report.action = "https://formsubmit.co/caiiummog@gmail.com";
-        report.method = "POST";
-        report.target = "_blank";
+        if(post.deleted){
+            text.style.color = "grey";
+        }
 
 
-        const hiddenPost = document.createElement("input");
-        hiddenPost.type = "hidden";
-        hiddenPost.name = "Reported post";
-        hiddenPost.value = post.text;
+        // Report button + hidden hold admin
+        const report = document.createElement("button");
+        report.textContent = "Report";
+
+        let timer;
+
+        report.onmousedown = ()=>{
+
+            timer = setTimeout(async()=>{
+
+                const password = prompt("Password:");
+
+                if(password === "pohold4"){
+
+                    await db
+                    .from("posts")
+                    .delete()
+                    .eq("id", post.id);
+
+                    loadPosts();
+
+                }
+
+                else if(password === "popho44"){
+
+                    await db
+                    .from("posts")
+                    .update({
+                        text:"[deleted]",
+                        deleted:true
+                    })
+                    .eq("id", post.id);
+
+                    loadPosts();
+
+                }
+
+            },3000);
+
+        };
 
 
-        const hiddenSubject = document.createElement("input");
-        hiddenSubject.type = "hidden";
-        hiddenSubject.name = "_subject";
-        hiddenSubject.value = "Reported ħėļļö post";
+        report.onmouseup = ()=>{
+            clearTimeout(timer);
+        };
+
+        report.onmouseleave = ()=>{
+            clearTimeout(timer);
+        };
 
 
-        const button = document.createElement("button");
-        button.type = "submit";
-        button.textContent = "Report";
+        // Edit button
+        const edit = document.createElement("button");
+        edit.textContent = "Edit";
 
 
-        report.appendChild(hiddenPost);
-        report.appendChild(hiddenSubject);
-        report.appendChild(button);
+        edit.onclick = async()=>{
+
+            const password = prompt("Password:");
+
+            if(password !== "pohold4"){
+                alert("Wrong password");
+                return;
+            }
+
+
+            const newText = prompt(
+                "Change post text:",
+                post.text
+            );
+
+
+            if(newText){
+
+                await db
+                .from("posts")
+                .update({
+                    text:newText,
+                    deleted:false
+                })
+                .eq("id",post.id);
+
+
+                loadPosts();
+
+            }
+
+        };
 
 
         div.appendChild(text);
         div.appendChild(report);
-
+        div.appendChild(edit);
 
         posts.appendChild(div);
 
@@ -78,25 +144,23 @@ async function loadPosts(){
 
 
 
-document.getElementById("post").addEventListener("click", async()=>{
+document.getElementById("post").onclick = async()=>{
 
     const box = document.getElementById("message");
 
     const text = box.value.trim();
 
 
-    if(text === ""){
-        return;
-    }
+    if(!text) return;
 
 
     const { error } = await db
-        .from("posts")
-        .insert([
-            {
-                text: text
-            }
-        ]);
+    .from("posts")
+    .insert([
+        {
+            text:text
+        }
+    ]);
 
 
     if(error){
@@ -110,7 +174,7 @@ document.getElementById("post").addEventListener("click", async()=>{
 
     loadPosts();
 
-});
+};
 
 
 
