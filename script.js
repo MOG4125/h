@@ -1,20 +1,21 @@
-// Replace these with your own values
 const SUPABASE_URL = "https://rvkymjchqqaxiyweupmy.supabase.co";
 const SUPABASE_KEY = "sb_publishable_38_y-uPUg-Aq6i487cBpDQ_4WhfXCuI";
 
-const supabase = window.supabase.createClient(
+const { createClient } = supabase;
+
+const db = createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
 
-async function loadPosts() {
+async function loadPosts(){
 
-    const { data, error } = await supabase
+    const { data, error } = await db
         .from("posts")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending:false });
 
-    if (error) {
+    if(error){
         console.error(error);
         return;
     }
@@ -22,37 +23,46 @@ async function loadPosts() {
     const posts = document.getElementById("posts");
     posts.innerHTML = "";
 
-    data.forEach(post => {
-        const div = document.createElement("div");
-        div.className = "post";
-        div.textContent = post.text;
+    data.forEach(post=>{
+
+        const div=document.createElement("div");
+        div.className="post";
+        div.textContent=post.text;
+
         posts.appendChild(div);
+
     });
+
 }
 
-document.getElementById("post").onclick = async () => {
+document.getElementById("post").addEventListener("click", async()=>{
 
-    const message = document.getElementById("message").value.trim();
+    const box=document.getElementById("message");
 
-    if (!message) return;
+    const text=box.value.trim();
 
-    const { error } = await supabase
+    if(text==="") return;
+
+    const { error } = await db
         .from("posts")
-        .insert({
-            text: message
-        });
+        .insert([
+            {
+                text:text
+            }
+        ]);
 
-    if (error) {
+    if(error){
         console.error(error);
+        alert(error.message);
         return;
     }
 
-    document.getElementById("message").value = "";
+    box.value="";
 
     loadPosts();
-};
+
+});
 
 loadPosts();
 
-// Refresh every 5 seconds
-setInterval(loadPosts, 5000);
+setInterval(loadPosts,3000);
