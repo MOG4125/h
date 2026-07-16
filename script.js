@@ -1,37 +1,58 @@
-async function loadPosts(){
-    const res = await fetch("/posts");
-    const posts = await res.json();
+// Replace these with your own values
+const SUPABASE_URL = "https://rvkymjchqqaxiyweupmy.supabase.co";
+const SUPABASE_KEY = "sb_publishable_38_y-uPUg-Aq6i487cBpDQ_4WhfXCuI";
 
-    const container = document.getElementById("posts");
-    container.innerHTML="";
+const supabase = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 
-    posts.reverse().forEach(text=>{
-        const div=document.createElement("div");
-        div.className="post";
-        div.textContent=text;
-        container.appendChild(div);
+async function loadPosts() {
+
+    const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    const posts = document.getElementById("posts");
+    posts.innerHTML = "";
+
+    data.forEach(post => {
+        const div = document.createElement("div");
+        div.className = "post";
+        div.textContent = post.text;
+        posts.appendChild(div);
     });
 }
 
-document.getElementById("post").onclick=async()=>{
+document.getElementById("post").onclick = async () => {
 
-    const text=document.getElementById("message").value.trim();
+    const message = document.getElementById("message").value.trim();
 
-    if(!text) return;
+    if (!message) return;
 
-    await fetch("/post",{
-        method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
-        body:JSON.stringify({text})
-    });
+    const { error } = await supabase
+        .from("posts")
+        .insert({
+            text: message
+        });
 
-    document.getElementById("message").value="";
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    document.getElementById("message").value = "";
 
     loadPosts();
 };
 
 loadPosts();
 
-setInterval(loadPosts,5000);
+// Refresh every 5 seconds
+setInterval(loadPosts, 5000);
