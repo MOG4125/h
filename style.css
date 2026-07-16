@@ -6,7 +6,6 @@ body{
 }
 
 h1{
-    font-size:32px;
     font-weight:normal;
 }
 
@@ -20,6 +19,7 @@ textarea{
 button{
     margin-top:10px;
     padding:8px 20px;
+    cursor:pointer;
 }
 
 .post{
