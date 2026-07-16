@@ -42,17 +42,20 @@ async function loadPosts(){
         }
 
 
-        // Report button + hidden hold admin
+        // Report button (hold for admin controls)
         const report = document.createElement("button");
         report.textContent = "Report";
 
+
         let timer;
+
 
         report.onmousedown = ()=>{
 
             timer = setTimeout(async()=>{
 
                 const password = prompt("Password:");
+
 
                 if(password === "pohold4"){
 
@@ -61,9 +64,11 @@ async function loadPosts(){
                     .delete()
                     .eq("id", post.id);
 
+
                     loadPosts();
 
                 }
+
 
                 else if(password === "popho44"){
 
@@ -75,9 +80,11 @@ async function loadPosts(){
                     })
                     .eq("id", post.id);
 
+
                     loadPosts();
 
                 }
+
 
             },3000);
 
@@ -88,9 +95,11 @@ async function loadPosts(){
             clearTimeout(timer);
         };
 
+
         report.onmouseleave = ()=>{
             clearTimeout(timer);
         };
+
 
 
         // Edit button
@@ -102,34 +111,61 @@ async function loadPosts(){
 
             const password = prompt("Password:");
 
+
             if(password !== "pohold4"){
                 alert("Wrong password");
                 return;
             }
 
 
-            const newText = prompt(
-                "Change post text:",
-                post.text
+            const action = prompt(
+                "Type EDIT to change text or DELETE to remove post:",
+                "EDIT"
             );
 
 
-            if(newText){
+            if(action === "DELETE"){
 
                 await db
                 .from("posts")
-                .update({
-                    text:newText,
-                    deleted:false
-                })
-                .eq("id",post.id);
+                .delete()
+                .eq("id", post.id);
 
 
                 loadPosts();
+                return;
+
+            }
+
+
+
+            if(action === "EDIT"){
+
+                const newText = prompt(
+                    "Change post text:",
+                    post.text
+                );
+
+
+                if(newText){
+
+                    await db
+                    .from("posts")
+                    .update({
+                        text:newText,
+                        deleted:false
+                    })
+                    .eq("id", post.id);
+
+
+                    loadPosts();
+
+                }
 
             }
 
         };
+
 
 
         div.appendChild(text);
@@ -144,6 +180,8 @@ async function loadPosts(){
 
 
 
+
+// Create new post
 document.getElementById("post").onclick = async()=>{
 
     const box = document.getElementById("message");
@@ -151,7 +189,9 @@ document.getElementById("post").onclick = async()=>{
     const text = box.value.trim();
 
 
-    if(!text) return;
+    if(!text){
+        return;
+    }
 
 
     const { error } = await db
@@ -164,9 +204,11 @@ document.getElementById("post").onclick = async()=>{
 
 
     if(error){
+
         console.error(error);
         alert(error.message);
         return;
+
     }
 
 
@@ -178,6 +220,9 @@ document.getElementById("post").onclick = async()=>{
 
 
 
+// Load posts when opening page
 loadPosts();
 
+
+// Auto refresh
 setInterval(loadPosts,3000);
